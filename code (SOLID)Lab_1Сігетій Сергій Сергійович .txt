@@ -1,0 +1,72 @@
+// Принцип однієї відповідальності (SRP)
+class ProductService {
+  getAllProducts() {
+    // Симулюємо отримання продуктів з бази даних
+    return [
+      { id: 1, name: "Сорочка", price: 20 },
+      { id: 2, name: "Штани", price: 30 },
+      { id: 3, name: "Взуття", price: 50 }
+    ];
+  }
+}
+
+class CartService {
+  constructor() {
+    this.cart = [];
+  }
+
+  addToCart(product) {
+    this.cart.push(product);
+  }
+
+  removeFromCart(productId) {
+    this.cart = this.cart.filter(item => item.id !== productId);
+  }
+
+  getTotalPrice() {
+    return this.cart.reduce((total, item) => total + item.price, 0);
+  }
+}
+
+// Принцип відкритості/закритості (OCP)
+class DiscountService {
+  applyDiscount(price) {
+    return price - (price * 0.1); // Знижка 10%
+  }
+}
+
+class VIPDiscountService extends DiscountService {
+  applyDiscount(price) {
+    return price - (price * 0.2); // Знижка 20% для VIP-клієнтів
+  }
+}
+
+// Принцип інверсії залежностей (DIP)
+class CheckoutService {
+  constructor(discountService) {
+    this.discountService = discountService;
+  }
+
+  processOrder(cart) {
+    const totalPrice = cart.getTotalPrice();
+    const discountedPrice = this.discountService.applyDiscount(totalPrice);
+    console.log(`Загальна ціна після знижки: $${discountedPrice}`);
+  }
+}
+
+// Приклад використання
+const productService = new ProductService();
+const cartService = new CartService();
+const discountService = new VIPDiscountService(); // Можна замінити на DiscountService для звичайних клієнтів
+const checkoutService = new CheckoutService(discountService);
+
+// Додавання продуктів до кошика
+const products = productService.getAllProducts();
+cartService.addToCart(products[0]); // Додаємо сорочку
+cartService.addToCart(products[1]); // Додаємо штани
+
+// Симулюємо видалення продукту з кошика
+cartService.removeFromCart(1); // Видаляємо сорочку
+
+// Обробка замовлення
+checkoutService.processOrder(cartService);
